@@ -17,6 +17,8 @@ import digital_rf as drf
 
 from eclipse_calc import solarContext
 
+import sys
+
 mpl.rcParams['font.size']      = 12
 mpl.rcParams['font.weight']    = 'bold'
 mpl.rcParams['axes.grid']      = True
@@ -83,7 +85,13 @@ def load_grape_drf(sDate,eDate,data_dir,channel='ch0'):
         print()
         print('Working on {!s} MHz....'.format(cfreq))
         data = do.read_vector(sinx, nsamps, channel)
-        bigarray[:] = data[:,cfreq_inx]
+        # edits to original code start here
+        if data.ndim == 1:
+            bigarray[:] = data
+        else:
+            bigarray[:] = data[:, cfreq_inx]
+        # edits to original code end here
+        #bigarray[:] = data[:,cfreq_inx]  -- original line
 
     result  = {}
     result['bigarray_dct']  = bigarray_dct
@@ -213,17 +221,18 @@ class GrapeDRF(object):
         ax.set_xticks(xticks)
         ax.set_xticklabels(xtkls)
 
+station_name = sys.argv[1]
 
 if __name__ == '__main__':
-    station     = 'w2naf'
-    sDate       = datetime.datetime(2024,4,8)
-    eDate       = datetime.datetime(2024,4,9)
+    station     = station_name
+    sDate       = datetime.datetime(2024,5,11)
+    eDate       = datetime.datetime(2024,5,12)
 
     figd = {}
-    figd['cfreqs']                  = [20,15,10,5]
-#    figd['cfreqs']                  = [10]
-    figd['solar_lat']               =  41.335116
-    figd['solar_lon']               = -75.600692
+    #figd['cfreqs']                  = [20,15,10,5]
+    figd['cfreqs']                  = [10]
+    figd['solar_lat']               =  33.40 # K4BSE
+    figd['solar_lon']               = -84.46 # K4BSE
     figd['overlaySolarElevation']   = True
     figd['overlayEclipse']          = True
 

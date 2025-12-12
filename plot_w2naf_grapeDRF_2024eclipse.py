@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import os
 import datetime
@@ -90,19 +90,6 @@ if __name__ == '__main__':
             gDRF.plot_ax(cfreq,ax,**g_figd)
             ax.set_title('({!s})'.format(letters[ax_inx-1]),loc='left',fontdict=letter_fdict)
             ax.set_title('{!s} MHz Receiver'.format(cfreq))
-
-            rt_dop_csv = os.path.join('data','shibaji',f'LoS_doppler_{cfreq}.csv')
-            if os.path.exists(rt_dop_csv):
-                print(f'FOUND: {rt_dop_csv}')
-                rt_dop = pd.read_csv(rt_dop_csv)
-                rt_dop['time'] = pd.to_datetime(rt_dop['time'])
-
-                xx = rt_dop['time']
-                yy = rt_dop['fd']
-
-                ax.plot(xx,yy,color='r',lw=5,zorder=1000)
-            else:
-                print(f'NOT FOUND: {rt_dop_csv}')
 
     # Finalize Figure ######################
     for ax_inx,ax in enumerate(axs):

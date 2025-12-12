@@ -377,4 +377,6 @@ class solarTimeseries(object):
         ax_ecl.set_ylim(ylim)
         ax_ecl.grid(grid)
         if spine_position is not None:
-            ax_ecl.spines.right.set_position(("axes", spine_position))
+            #ax_ecl.spines.right.set_position(("axes", spine_position))
+            ax_ecl.spines["right"].set_position(("axes", spine_position))
+

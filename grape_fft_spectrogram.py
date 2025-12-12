@@ -27,8 +27,13 @@ import pytz
 import sys
 import os
 import configparser
+from sys import exit
 
 import load_metadata              # this is a module in this directory to read digital RF metadata
+
+# python3 grape_fft_spectrogram.py ch0_G4HZX 6 8 13
+
+sys.argv = [sys.argv[0], 'ch0_G4HZX', '6', '8', '13']
 
 # set base directory for subsequent read operations and set up digital RF reader appropriate directory
 base_directory='./'
@@ -54,6 +59,7 @@ if n>5:
 channel=sys.argv[1]
 freq_index=int(sys.argv[2])    # Get index from metadata frequency list e.g. use grape_digital_RF_metadata.py or inspect PSWS spectrogram
 hours_offset=int(sys.argv[3])  # Start time for data input and plot
+
 
 if hours_offset < 0 or hours_offset > 23:
    print ("Start time (hours) must be between 0 and 23")
