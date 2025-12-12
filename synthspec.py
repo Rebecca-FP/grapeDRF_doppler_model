@@ -2,13 +2,14 @@
 #  Name synthspec.py
 #
 # Purpose : To take the output csv file from modefinder.py of assigned-to-mode rays landing at the receiver, 
-#           derive the Doppler shifts from rate of change of phase path and output a csv file of time series. 
+#           derive the Doppler shifts from rate of change of phase path and output a csv file of time series.
+#           Also applies simople division by c, velocity of light, to obtain delay by mode.
 #           Three command line arguments, the callsign subdirectory designator and the *modefinder.csv file to process
 #           and the flag DB if the output is also to be uploaded to a postgresql database on the localhost.
 #           See comments in the final section on the database 
 #    For use with HamSCI PSWS analysis.
 #    Use in auto ident of propagation modes in spectrogram is next stage - the real challenge!
-#    Gwyn Griffiths G3ZIL September 2025
+#    Gwyn Griffiths G3ZIL September-December 2025
 
 import  numpy as np
 import csv
@@ -22,7 +23,7 @@ import matplotlib.patches as mpatches
 import matplotlib.dates as mdates
 import matplotlib.units as munits
 
-# Get the command line arguments, first the tow mandatory ones
+# Get the command line arguments, first the two mandatory ones
 callsign = sys.argv[1]                     # callsign for subdirectory name
 csv_in_file = sys.argv[2]                  # *modefinder.csv file   
 
@@ -59,6 +60,8 @@ rx=config['metadata'].get('rx')
 dphase_to_dopp=-1000*freq*1000000/2.9979e8  # 1000 gives m from km, freq MHz to Hz and c vellight m/s, note negative sign
 #print(dphase_to_dopp)
 
+c= 2.9979e5                       # Velocity of light in vaccuo in km/s as phase path in km
+
 # Read the data using the csv.reader - this ponderous approach seemed needed for rows with mixed types, float and strings
 # Reads a row at a time and tries to convert to float, if fails, leaves as string. Store each row in a list 'data'
 data = []
@@ -93,6 +96,7 @@ sorted_data=temp_data[indices]                          # this is the sorted arr
 
 # Set up arrays for string variables and new one for raw- and one for range-corrected Doppler, recall these are now sorted
 n_traces=len(sorted_data)
+delay=np.empty(n_traces, dtype=object)
 date=np.empty(n_traces, dtype=object)
 p_mode=np.empty(n_traces, dtype=object)
 color=np.empty(n_traces, dtype=object)
@@ -126,6 +130,10 @@ for i in range(1, n_traces):
         /del_time)*dphase_to_dopp,3)
 print("Doppler calculation completed")
 
+# Calcuate delay time for the total phase path assuming c is velocity of light in vaccuo
+for i in range(1, n_traces):
+  delay[i]=round((mode_data[i,5]/c)*1000,3)       # delay in milliseconds where phase path length is in km
+
 ##################################################
 # Plot Doppler shifts
 ##################################################
@@ -137,10 +145,12 @@ scatter=ax.scatter(date, doppler, c=color, s=5)
 
 plt.xlabel("Time (Month-Day Hour UTC)")
 plt.ylabel("Doppler shift(Hz)")
-#plt.ylim(-1,1)
-## Set time format and the interval of ticks (every 3 hours)
+plt.ylim(-2,2)
+## Set time format and the interval of ticks
 xformatter = mdates.DateFormatter('%m-%d %H')
-xlocator = mdates.HourLocator(interval = 3)
+x_tick_interval=int(np.ceil((max(date) - min(date)).seconds / (3600*6)))
+print ("tick interval hours: ", x_tick_interval)
+xlocator = mdates.HourLocator(interval = x_tick_interval)
 ax.xaxis.set_major_locator(xlocator)
 
 plt.gcf().set_size_inches(8, 4, forward=True)
@@ -161,7 +171,35 @@ plt.legend(handles=[black_patch, blue_patch, green_patch, purple_patch, grey_pat
 # save and show the figure
 plt.savefig(plot_dir + "/" + csv_in_file + "_synth_doppler.png", dpi=600)
 plt.show()
-print("Plot generated and saved")
+print("Doppler plot generated and saved")
+
+##################################################
+# Plot Delays 
+##################################################
+fig, ax = plt.subplots()     
+plt.suptitle("Delay of " + str(freq) + " MHz propagation modes between  " + tx + " and " + callsign, fontsize=12)
+
+scatter=ax.scatter(date, delay, c=color, s=5)
+
+plt.xlabel("Time (Month-Day Hour UTC)")
+plt.ylabel("Delay (ms)")
+#plt.ylim(-1,1)
+## Set time format and the interval of ticks
+xformatter = mdates.DateFormatter('%m-%d %H')
+x_tick_interval=int(np.ceil((max(date) - min(date)).seconds / (3600*6)))
+print ("tick interval hours: ", x_tick_interval)
+xlocator = mdates.HourLocator(interval = x_tick_interval)
+ax.xaxis.set_major_locator(xlocator)
+
+plt.gcf().set_size_inches(8, 4, forward=True)
+plt.tight_layout()
+plt.legend(handles=[black_patch, blue_patch, green_patch, purple_patch, grey_patch, cyan_patch, lime_patch, orchid_patch],\
+   ncol=2, loc='upper right')
+
+# save and show the figure
+plt.savefig(plot_dir + "/" + csv_in_file + "_synth_delay.png", dpi=600)
+plt.show()
+print("Delay plot generated and saved")
 
 # output the original data plus doppler  into file *_modefinder.csv in ./output/csv/callsign dir
 with open(csv_out_name, 'w', encoding='UTF8',) as out_file:     # open a csv file for write
@@ -170,7 +208,7 @@ with open(csv_out_name, 'w', encoding='UTF8',) as out_file:     # open a csv fil
 
   for i in range (0,n_traces):
     writer.writerow([sorted_data[i,0],sorted_data[i,1],sorted_data[i,2],sorted_data[i,3],sorted_data[i,4],sorted_data[i,5],\
-       sorted_data[i,6],sorted_data[i,7],sorted_data[i,8],sorted_data[i,9],sorted_data[i,10], sorted_data[i,11],doppler[i]])
+       sorted_data[i,6],sorted_data[i,7],sorted_data[i,8],sorted_data[i,9],sorted_data[i,10], sorted_data[i,11],doppler[i], delay[i]])
 
 print("csv file * modefinder written")
 
