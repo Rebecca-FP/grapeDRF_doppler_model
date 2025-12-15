@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-# this is a new comment!
-# new  omment
-
-
 import os
 import datetime
 import logging
@@ -38,28 +34,29 @@ mpl.rcParams['legend.fontsize'] = 'xx-large'
 # end_date    = sys.argv[3]
 # frequencies = sys.argv[4]
 
+# Inputs
 channel     = "w2naf"
 start_date  = "2024-5-10"
 end_date    = "2024-5-11"
 frequencies = "5,10,15"
 
-
 sYear, sMonth, sDay = map(int, start_date.split("-"))
 eYear, eMonth, eDay = map(int, end_date.split("-"))
-
 freq_list = list(map(int, frequencies.split(',')))
 
+# Paths to directories
 base_directory='./'
 data_dir=os.path.join(base_directory,'data','psws_grapeDRF', channel)
-
 output_dir=os.path.join(base_directory,'output')
+
+# Load metadata
 (date,freqList,s1,s0,fs,theCallsign,grid,lat_coord,lon_coord) = load_metadata2.load_grape_drf_metadata(data_dir, 'metadata')
 
 timestamps = []
-freq_devs = []
+freq_devs  = []
 
 station_dct = {}
-sdct    = station_dct[channel] = {}
+sdct        = station_dct[channel] = {}
 sdct['QTH'] = f'{grid}'
 
 if __name__ == '__main__':
@@ -77,17 +74,17 @@ if __name__ == '__main__':
     figd['solar_lat']               = lat
     figd['solar_lon']               = lon
     figd['overlaySolarElevation']   = True
-    figd['overlayEclipse']          = True
+    #figd['overlayEclipse']          = True
     figd['xlim']                    = (sDate,eDate)
 
     # 'center_frequencies': array([ 2.5 ,  3.33,  5.  ,  7.85, 10.  , 14.67, 15.  , 20.  , 25.  ])
-    cfreqs = freq_list
+    cfreqs = freq_list                          # should I change this to np.array(freq_list)?
     #cfreqs          = [20,15,10,5]
     #cfreqs          = [3.33,7.85,14.67]
     plot_list   = []
     plot_list.append('WDgrape')
     # plot_list.append('VLF')
-#    plot_list.append('gmag')
+    #plot_list.append('gmag')
 
     str_sDate   = sDate.strftime('%Y%m%d.%H%M')
     str_eDate   = eDate.strftime('%Y%m%d.%H%M')
@@ -102,8 +99,6 @@ if __name__ == '__main__':
 
     png_fname   = '_'.join(png_)+'.png'
     png_fpath   = os.path.join(output_dir,png_fname)
-
-
     nrows       = len(plot_list)
     if 'WDgrape' in plot_list:
         nrows += len(cfreqs) - 1
@@ -125,17 +120,6 @@ if __name__ == '__main__':
             gDRF.plot_ax(cfreq,ax,**g_figd)
             ax.set_title('({!s})'.format(letters[ax_inx-1]),loc='left',fontdict=letter_fdict)
             ax.set_title('{!s} MHz Receiver'.format(cfreq))
-            
-            # Experimental stuff
-            doppler_dict = gDRF.plot_ax(cfreq, ax, **g_figd)
-            df = pd.DataFrame({
-                "timestamp": doppler_dict["timestamp"],
-                "doppler_Hz": doppler_dict["doppler"]
-            })
-            csv_path = os.path.join(output_dir, f"{station}_{cfreq}_MHz_doppler.csv")
-            df.to_csv(csv_path, index=False)
-            print("Saved:", csv_path)
-            # End of experimental stuff
 
     # Finalize Figure ######################
     for ax_inx,ax in enumerate(axs):

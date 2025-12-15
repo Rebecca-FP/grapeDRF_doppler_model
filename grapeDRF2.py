@@ -117,14 +117,16 @@ class GrapeDRF(object):
         ba_fpath    = os.path.join(output_dir,event_fname+'.ba.pkl')
         data_dir    = os.path.join('data','psws_grapeDRF',station)  
 
-        if not os.path.exists(ba_fpath):
-            result  = load_grape_drf(sDate,eDate,data_dir)
-            with open(ba_fpath,'wb') as fl:
-                pickle.dump(result,fl)
-        else:
-            print('Using cached file {!s}...'.format(ba_fpath))
-            with open(ba_fpath,'rb') as fl:
-                result = pickle.load(fl)
+        result  = load_grape_drf(sDate,eDate,data_dir)
+
+        # if not os.path.exists(ba_fpath):
+        #     result  = load_grape_drf(sDate,eDate,data_dir)
+        #     with open(ba_fpath,'wb') as fl:
+        #         pickle.dump(result,fl)
+        # else:
+        #     print('Using cached file {!s}...'.format(ba_fpath))
+        #     with open(ba_fpath,'rb') as fl:
+        #         result = pickle.load(fl)
 
         self.result             = result
         self.cfreqs             = list(result['bigarray_dct'].keys())
@@ -221,66 +223,6 @@ class GrapeDRF(object):
         ax.set_xticks(xticks)
         ax.set_xticklabels(xtkls)
     
-        # Experimental stuff Option 1 - Start    
-        def get_doppler_shift(self, cfreq):
-            """
-            Computes instantaneous Doppler shift in Hz using the phase derivative.
-            """
-            import pandas as pd
-    
-            bigarray = self.result['bigarray_dct'].get(cfreq)
-            timestamps = self.result['timevec_utc']
-            fs = self.fs
-    
-            # unwrap phase
-            phase = np.unwrap(np.angle(bigarray))
-    
-            # frequency = derivative of phase / (2π) * sample_rate
-            freq_shift = np.diff(phase) * (fs / (2*np.pi))
-    
-            # align timestamps (freq_shift is one shorter)
-            ts = timestamps[1:]
-    
-            return pd.DataFrame({
-                "timestamp": ts,
-                "freq_shift_Hz": freq_shift
-            })
-        # Experimental stuff Option 1 - End
-        '''
-        # Experimental stuff Option 2 - Start
-        def get_freq_timeseries(self, cfreq):
-            """
-            Returns a pandas DataFrame with:
-            timestamp (UTC)
-            real
-            imag
-            amplitude
-            phase
-            """
-            import pandas as pd
-            bigarray = self.result['bigarray_dct'].get(cfreq)
-    
-            if bigarray is None:
-                raise ValueError(f"No data for frequency {cfreq}")
-    
-            timestamps = self.result['timevec_utc']
-            real = np.real(bigarray)
-            imag = np.imag(bigarray)
-            amp = np.abs(bigarray)
-            phase = np.angle(bigarray)
-    
-            df = pd.DataFrame({
-                "timestamp": timestamps,
-                "real": real,
-                "imag": imag,
-                "amplitude": amp,
-                "phase": phase
-            })
-            return df
-    
-        # Experimental stuff Option 2 - End
-        '''
-#====================================================================================
 '''
 if __name__ == '__main__':
     station     = station_name
@@ -288,10 +230,10 @@ if __name__ == '__main__':
     eDate       = datetime.datetime(2024,5,12)
 
     figd = {}
-    #figd['cfreqs']                  = [20,15,10,5]
-    figd['cfreqs']                  = [10]
-    figd['solar_lat']               =  33.40 # K4BSE
-    figd['solar_lon']               = -84.46 # K4BSE
+    #figd['cfreqs']                  = []
+    figd['cfreqs']                  = []
+    figd['solar_lat']               =  
+    figd['solar_lon']               = 
     figd['overlaySolarElevation']   = True
     figd['overlayEclipse']          = True
 
