@@ -35,10 +35,10 @@ mpl.rcParams['legend.fontsize'] = 'xx-large'
 # frequencies = sys.argv[4]
 
 # Inputs
-channel     = "w2naf"
+channel     = "k4bse"
 start_date  = "2024-5-10"
 end_date    = "2024-5-11"
-frequencies = "5,10,15"
+frequencies = "10"
 
 sYear, sMonth, sDay = map(int, start_date.split("-"))
 eYear, eMonth, eDay = map(int, end_date.split("-"))
